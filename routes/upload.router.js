@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const authenticate = require('../authenticate');
 const multer = require('multer');
-let cors = require('./cors');
+const cors = require('../middlewares/cors');
 
 
 const storage = multer.diskStorage({
@@ -35,9 +35,7 @@ uploadRouter.route('/')
     res.end('GET operation not supported on /imageUpload');
 })
 .post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, upload.single('imageFile'), (req, res) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    res.json(req.file);
+    res.status(200).json(req.file);
 })
 .put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
