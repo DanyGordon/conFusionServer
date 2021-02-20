@@ -1,5 +1,6 @@
 const User = require('../models/user.model');
 const passport = require('passport');
+const authenticate = require('../middlewares/authenticate');
 
 exports.findAll = async (req, res, next) => {
   try {
@@ -12,7 +13,7 @@ exports.findAll = async (req, res, next) => {
 
 exports.register = async (req, res, next) => {
   try {
-    const user = await User.register(new User({username: req.body.username}));
+    const user = await User.register(new User({username: req.body.username}), req.body.password);
     user.firstname = req.body.firstname;
     user.lastname = req.body.lastname;
     await user.save();
@@ -27,26 +28,26 @@ exports.register = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
     if(err) {
-      next(err);
-    } else if (!user) {
-      res.status(401).json({
+      return next(err);
+    } 
+    if (!user) {
+      return res.status(401).json({
         success: false, 
         status: 'Login Unsuccessful!', 
         err: info
       });
-    } else {
-      req.logIn(user, (err) => {
-        if (err) {
-          res.status(401).json({
-            success: false, 
-            status: 'Login Unsuccessful!', 
-            err: 'Could not log in user!'
-          });          
-        }
-        const token = authenticate.getToken({_id: req.user._id});
-        res.status(200).json({success: true, status: 'Login Successful!', token: token});
-      }); 
-    } 
+    }
+    req.logIn(user, (err) => {
+      if (err) {
+        return res.status(401).json({
+          success: false, 
+          status: 'Login Unsuccessful!', 
+          err: 'Could not log in user!'
+        });          
+      }
+      const token = authenticate.getToken({_id: req.user._id});
+      res.status(200).json({success: true, status: 'Login Successful!', token: token});
+    }); 
   }) (req, res, next);
 }
 
@@ -59,7 +60,7 @@ exports.logout = async (req, res, next) => {
   else {
     const err = new Error('You are not logged in!');
     err.status = 403;
-    next(err);
+    return next(err);
   }
 }
 

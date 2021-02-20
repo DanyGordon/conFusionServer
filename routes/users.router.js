@@ -1,8 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const passport = require('passport');
 
-var authenticate = require('../authenticate');
-let cors = require('../middlewares/cors');
+const authenticate = require('../middlewares/authenticate');
+const cors = require('../middlewares/cors');
 
 const usersController = require('../controllers/users.controller');
 
@@ -23,12 +24,12 @@ router.post('/login', cors.corsWithOptions,
   (req, res, next) => usersController.login(req, res, next));
 
 router.get('/logout', cors.corsWithOptions, 
-  (req, res) => usersController.logout(req, res));
+  (req, res, next) => usersController.logout(req, res, next));
 
 router.get('facebook/token', cors.corsWithOptions, passport.authenticate('facebook-token'), 
-  (req, res) => usersController.facebookTokenAuth(req, res));
+  (req, res, next) => usersController.facebookTokenAuth(req, res, next));
 
 router.get('/checkJWTtoken', cors.corsWithOptions, 
-  (req, res) => usersController.checkingJWT(req, res));
+  (req, res, next) => usersController.checkingJWT(req, res, next));
 
 module.exports = router;

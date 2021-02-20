@@ -1,3 +1,5 @@
 node_modules
+errorProcess
 
+.env
 db.json

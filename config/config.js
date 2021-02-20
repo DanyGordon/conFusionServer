@@ -1,9 +1,9 @@
 // Configurate your server here
 module.exports = {
-    'secretKey': '',
-    'mongoUrl' : '',
+    'secretKey': '12345-67890-09876-54321',
+    'mongoUrl' : 'mongodb://localhost:27017/testDataBase',
     'facebook' : {
-        clientID: '',
-        clientSecret: ''
+        clientID: '120439021965709',
+        clientSecret: '46209c6e76827f6e48cd84d4f5166f27'
     }
 }

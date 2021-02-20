@@ -18,15 +18,13 @@ exports.findFavorites = async (req, res, next) => {
 
 exports.findFavoriteById = async (req, res, next) => {
   try {
-    const favorite = await Favorite.findOne({ user: req.user._id })
-      .populate('user')
-      .populate('dishes');
+    const favorite = await Favorite.findOne({ user: req.user._id }).populate('user').populate('dishes');
     if (!favorite) {
       res.status(404).end(`You have no favorites!`);
     } else {
-      const isDish = favorite.dishes.some(dish => dish._id == req.params.favoriteDishId);
-      isDish 
-        ? res.status(200).json(favorite)
+      const dish = favorite.dishes.filter(dish => dish._id == req.params.favoriteDishId);
+      dish.length > 0 
+        ? res.status(200).json(dish)
         : Dishes.findById(req.params.favoriteDishId, (err, dish) => {
           err 
             ? res.status(404).end(`Dish with id ${req.params.favoriteDishId} non exist`) 
@@ -42,16 +40,16 @@ exports.createFavorite = async (req, res, next) => {
   try {
     const favorite = await Favorite.findOne({ user: req.user._id });
     if (!favorite) {
-      const createdFavorite = await Favorite.create({ user: req.user._id, dishes: req.body });
-      res.location(getCurrentUrl(req) + createdFavorite._id).status(201).end();
+      await Favorite.create({ user: req.user._id, dishes: req.body.dishes });
+      res.location(getCurrentUrl(req)).status(201).end();
     } else {
-      for (let dish in req.body) {
+      for (let dish of req.body.dishes) {
         if (favorite.dishes.indexOf(dish._id) < 0) {
           favorite.dishes.push(dish);
         }
       }
       await favorite.save();
-      res.location(getCurrentUrl(req) + favorite._id).status(201).end();
+      res.location(getCurrentUrl(req)).status(201).end();
     }
   } catch (error) {
     next(error);
@@ -64,12 +62,13 @@ exports.createFavoriteById = async (req, res, next) => {
       .populate('user')
       .populate('dishes');
     if (!favorite) {
-      const createdFavorite = await Favorite.create({ user: req.user._id, dishes: [ req.params.favoriteDishId ] });
-      res.location(getCurrentUrl(req) + createdFavorite._id).status(201).end();
+      await Favorite.create({ user: req.user._id, dishes: [ req.params.favoriteDishId ] });
+      res.location(getCurrentUrl(req)).status(201).end();
     } else {
       const isDish = favorite.dishes.some(dish => dish._id == req.params.favoriteDishId);
       if (!isDish) {
-        await (favorite.dishes.push({ _id: req.params.favoriteDishId })).save();
+        favorite.dishes.push({ _id: req.params.favoriteDishId })
+        await favorite.save();
         res.location(getCurrentUrl(req)).status(201).end();
       } else {
         Dishes.findById(req.params.favoriteDishId, (err, dish) => {
@@ -114,7 +113,7 @@ exports.deleteFavoriteById = async (req, res, next) => {
 
 exports.methodNotSupported = (req, res, next) => {
   res.statusCode = 403;
-  res.end(`${req.method} operation not supported on ${req.url}`);
+  res.end(`${req.method} operation not supported on ${req.originalUrl}`);
 }
 
 function getCurrentUrl(req) {

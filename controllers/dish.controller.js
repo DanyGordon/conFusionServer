@@ -15,7 +15,7 @@ exports.findById = async (req, res, next) => {
     if (dish !== null) {
       res.status(200).json(dish);
     } else {
-      res.status(404).end(`Object with id ${req.params.dishId} nof found!`);
+      res.status(404).end(`Object ${req.params.dishId} nof found!`);
     }
   } catch (error) {
     next(error);
@@ -43,7 +43,7 @@ exports.updateById = async (req, res, next) => {
     if (updatedDish !== null) {
       res.status(200).json(updatedDish);
     } else {
-      res.status(404).end(`Object with id ${req.params.dishId} nof found!`);
+      res.status(404).end(`Object ${req.params.dishId} nof found!`);
     }
   } catch (error) {
     next(error);
@@ -111,7 +111,7 @@ exports.addComentToDish = async (req, res, next) => {
       req.body.author = req.user._id;
       dish.comments.push(req.body)
       await dish.save();
-      res.location(getCurrentUrl(req)).status(201).end();
+      res.location(getCurrentUrl(req) + dish.comments[dish.comments.length - 1]._id).status(201).end();
     } else {
       const error = new Error('Dish ' + req.params.dishId + ' not found');
       error.status = 404;
@@ -126,15 +126,16 @@ exports.updateComentById = async (req, res, next) => {
   try {
     const dish = await Dishes.findById(req.params.dishId);
     if (dish && dish.comments.id(req.params.commentId)) {
-      if (req.user._id == dish.comments.id(req.params.commentId).author._id) {
+      if (String(req.user._id) === String(dish.comments.id(req.params.commentId).author._id)) {
         if (req.body.rating) {
           dish.comments.id(req.params.commentId).rating = req.body.rating;
         }
         if (req.body.comment) {
           dish.comments.id(req.params.commentId).comment = req.body.comment;                
         }
-        await dish.save().populate('comments.author');
-        res.status(200).json(dish);
+        const updatedDish = await dish.save();
+        updatedDish.populate('comments.author')
+        return res.status(200).json(updatedDish);
       } else {
         const error = new Error('You are not authorized to perfom this operation!');
         error.status = 404;
@@ -177,7 +178,7 @@ exports.deleteComentById = async (req, res, next) => {
   try {
     const dish = await Dishes.findById(req.params.dishId);
     if (dish && dish.comments.id(req.params.commentId)) {
-      if (req.user._id == dish.comments.id(req.params.commentId).author._id) {
+      if (String(req.user._id) == String(dish.comments.id(req.params.commentId).author._id)) {
         dish.comments.id(req.params.commentId).remove();
         await dish.save();
         res.status(204).end();
@@ -202,7 +203,7 @@ exports.deleteComentById = async (req, res, next) => {
 
 exports.methodNotSupported = (req, res, next) => {
   res.statusCode = 403;
-  res.end(`${req.method} operation not supported on ${req.url}`);
+  res.end(`${req.method} operation not supported on ${req.originalUrl}`);
 }
 
 function getCurrentUrl(req) {

@@ -1,6 +1,6 @@
 var passport = require('passport');
 var jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
-var User = require('./models/user');
+var User = require('../models/user.model');
 var LocalStrategy = require('passport-local').Strategy;
 var JwtStrategy = require('passport-jwt').Strategy;
 var ExtractJwt = require('passport-jwt').ExtractJwt;

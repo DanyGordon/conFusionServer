@@ -70,7 +70,7 @@ exports.deleteById = async (req, res, next) => {
 
 exports.methodNotSupported = (req, res, next) => {
   res.statusCode = 403;
-  res.end(`${req.method} operation not supported on ${req.url}`);
+  res.end(`${req.method} operation not supported on ${req.originalUrl}`);
 }
 
 function getCurrentUrl(req) {

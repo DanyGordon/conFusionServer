@@ -7,7 +7,7 @@ const logger = require('morgan');
 var FileStore = require('session-file-store')(session); */
 const mongoose = require('mongoose');
 const passport = require('passport');
-const config = require('./config');
+const config = require('./config/config');
 
 const url = config.mongoUrl;
 const connect = mongoose.connect(url);
